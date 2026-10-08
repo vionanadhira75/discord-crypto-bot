@@ -88,6 +88,11 @@ function formatIDR(n) {
   return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
 
+function formatVND(n) {
+  if (n === null || n === undefined) return 'N/A';
+  return '₫' + Math.round(n).toLocaleString('vi-VN');
+}
+
 function formatCompactNumber(n, prefix) {
   if (n === null || n === undefined) return 'N/A';
   const sign = n < 0 ? '-' : '';
@@ -144,6 +149,7 @@ async function handlePriceQuery(message, amount, symbol) {
   const md = data.market_data;
   const priceUsd = md.current_price.usd;
   const priceIdr = md.current_price.idr;
+  const priceVnd = md.current_price.vnd;
   const athUsd = md.ath.usd;
   const athChangePct = md.ath_change_percentage.usd;
   const change24h = md.price_change_percentage_24h;
@@ -156,6 +162,7 @@ async function handlePriceQuery(message, amount, symbol) {
   const amountNum = parseFloat(amount.replace(',', '.'));
   const totalUsd = amountNum * priceUsd;
   const totalIdr = amountNum * priceIdr;
+  const totalVnd = amountNum * priceVnd;
 
   const table = buildStatTable([
     { label: 'Market Cap', value: formatCompactNumber(marketCap, '$') },
@@ -168,7 +175,8 @@ async function handlePriceQuery(message, amount, symbol) {
     `**${amountNum.toFixed(2)} ${symbolUpper}**`,
     '',
     `${formatUSD(totalUsd)}`,
-    `${formatIDR(totalIdr)} · ${build24hIndicator(change24h)}`,
+    `${formatIDR(totalIdr)}`,
+    `${formatVND(totalVnd)} · ${build24hIndicator(change24h)}`,
     '',
     table,
   ].join('\n');
@@ -179,8 +187,7 @@ async function handlePriceQuery(message, amount, symbol) {
       name: `${data.name}${rank ? ` · #${rank}` : ''}`,
       iconURL: data.image?.small,
     })
-    .setDescription(description)
-    .setTimestamp();
+    .setDescription(description);
 
   await message.reply({ embeds: [embed] });
 }
